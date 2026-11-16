@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>FundsIQ Corrections</title>
+
+<link rel="stylesheet"
+href="corrections.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Top -->
+
+    <div class="top-bar">
+
+        <button class="back-btn"
+        onclick="location.href='result.html'">
+
+        ←
+
+        </button>
+
+        <h2>Corrections</h2>
+
+        <span id="questionCounter">
+
+        1 / 50
+
+        </span>
+
+    </div>
+
+    <!-- Progress -->
+
+    <div class="progress">
+
+        <div id="progressFill"></div>
+
+    </div>
+
+    <!-- Question -->
+
+    <div class="question-card">
+
+        <h3 id="questionText">
+
+        Question goes here...
+
+        </h3>
+
+    </div>
+
+    <!-- Options -->
+
+    <div id="optionsContainer">
+
+    </div>
+
+    <!-- Answer Summary -->
+
+    <div class="summary-card">
+
+        <div class="summary-row">
+
+            ❌ Your Answer:
+
+            <strong id="your-answer">
+
+            A
+
+            </strong>
+
+        </div>
+
+        <div class="summary-row">
+
+            ✅ Correct Answer:
+
+            <strong id="correct-answer">
+
+            B
+
+            </strong>
+
+        </div>
+
+    </div>
+
+    <!-- Explanation -->
+
+    <div class="explanation-card">
+
+        <div class="explanation-header"
+        onclick="toggleExplanation()">
+
+            <span>
+
+            💡 Explanation
+
+            </span>
+
+            <span id="arrow">
+
+            ▼
+
+            </span>
+
+        </div>
+
+        <div id="explanationBody">
+
+            <p id="explanationText">
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Bottom Navigation -->
+
+<div class="bottom-nav">
+
+    <button onclick="previousCorrection()">
+
+    ⬅ Previous
+
+    </button>
+
+    <button onclick="nextCorrection()">
+
+    Next ➡
+
+    </button>
+
+</div>
+
+<script src="questions.js"></script>
+<script src="corrections.js"></script>
+
+</body>
+</html>

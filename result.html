@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FundsIQ - Result</title>
+
+<link rel="stylesheet" href="result.css">
+
+</head>
+
+<body>
+
+<div class="result-container">
+
+    <!-- Header -->
+    <div class="result-header">
+        <h1>🎉 Exam Completed</h1>
+        <p>Your performance summary</p>
+    </div>
+
+    <!-- Score Circle -->
+    <div class="score-section">
+
+        <div class="progress-circle">
+
+            <svg width="180" height="180">
+
+                <circle
+                    cx="90"
+                    cy="90"
+                    r="75"
+                    class="bg-circle">
+                </circle>
+
+                <circle
+                    cx="90"
+                    cy="90"
+                    r="75"
+                    class="progress-ring"
+                    id="progressRing">
+                </circle>
+
+            </svg>
+
+            <div class="score-text">
+                <h2 id="percentText">0%</h2>
+                <span>Score</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Grade Card -->
+    <div class="grade-card">
+
+        <h2 id="gradeText">Grade A</h2>
+
+        <p id="messageText">
+            Outstanding Performance!
+        </p>
+
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h3 id="scoreText">0/0</h3>
+            <p>Correct Answers</p>
+        </div>
+
+        <div class="stat-card">
+            <h3 id="wrongText">0</h3>
+            <p>Wrong Answers</p>
+        </div>
+
+        <div class="stat-card">
+            <h3 id="totalText">0</h3>
+            <p>Total Questions</p>
+        </div>
+
+        <div class="stat-card">
+            <h3 id="gradePointText">0.00</h3>
+            <p>Grade Point</p>
+        </div>
+
+    </div>
+
+    <!-- Course -->
+    <div class="course-card">
+
+        <h3>Course</h3>
+
+        <p id="courseText">
+            GST 101
+        </p>
+
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+
+        <button class="btn btn-primary"
+            onclick="viewCorrections()">
+
+            📖 View Corrections
+
+        </button>
+
+        <button class="btn btn-secondary"
+            onclick="retakeExam()">
+
+            🔄 Retake Exam
+
+        </button>
+
+        <button class="btn btn-home"
+            onclick="goHome()">
+
+            🏠 Home
+
+        </button>
+
+    </div>
+
+</div>
+
+<script src="result.js"></script>
+
+</body>
+</html>

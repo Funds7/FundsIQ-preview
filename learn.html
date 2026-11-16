@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FundsIQ - Learn</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="chapter-header">
+        <h1 id="chapterTitle"></h1>
+        <p>📚 Learn • Practice • Pass</p>
+    </div>
+
+    <div id="contentArea"></div>
+
+    <br>
+
+    <button class="main-btn" onclick="startTest()">
+        📝 Take Chapter Test
+    </button>
+
+</div>
+
+<script src="content.js"></script>
+
+<script>
+
+// =====================================
+// FUNDSIQ MODAL SYSTEM
+// =====================================
+
+let modalModulePromise = null;
+
+function getModals() {
+
+    if (!modalModulePromise) {
+        modalModulePromise = import("./modals.js");
+    }
+
+    return modalModulePromise;
+}
+
+
+// =====================================
+// COURSE INFORMATION
+// =====================================
+
+const course =
+    localStorage.getItem("course") ||
+    localStorage.getItem("gstCourse");
+
+const chapter =
+    localStorage.getItem("chapter") ||
+    localStorage.getItem("chapterId");
+
+const chapterKey = "chapter" + chapter;
+
+const bookmarkKey = "fundsiq_bookmarks";
+
+
+// =====================================
+// GET SAVED BOOKMARKS
+// =====================================
+
+function getBookmarks() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(bookmarkKey) || "[]"
+        );
+
+    } catch (error) {
+
+        return [];
+
+    }
+
+}
+
+
+// =====================================
+// SAVE BOOKMARKS
+// =====================================
+
+function saveBookmarks(bookmarks) {
+
+    localStorage.setItem(
+        bookmarkKey,
+        JSON.stringify(bookmarks)
+    );
+
+}
+
+
+// =====================================
+// CHECK BOOKMARK STATUS
+// =====================================
+
+function isBookmarked(pointId) {
+
+    return getBookmarks().some(
+        bookmark => bookmark.id === pointId
+    );
+
+}
+
+
+// =====================================
+// TOGGLE BOOKMARK
+// NO POPUP
+// =====================================
+
+function toggleBookmark(pointId, button) {
+
+    let bookmarks = getBookmarks();
+
+    const existingIndex = bookmarks.findIndex(
+        bookmark => bookmark.id === pointId
+    );
+
+    if (existingIndex !== -1) {
+
+        bookmarks.splice(existingIndex, 1);
+
+        button.innerHTML = "🔖 Bookmark";
+
+        saveBookmarks(bookmarks);
+
+    } else {
+
+        const point = document.getElementById(
+            "point-" + pointId
+        );
+
+        if (!point) return;
+
+        bookmarks.push({
+
+            id: pointId,
+
+            course: course,
+
+            chapter: chapter,
+
+            point: pointId.split("-").pop(),
+
+            content: point.innerText,
+
+            savedAt: new Date().toISOString()
+
+        });
+
+        button.innerHTML = "✅ Bookmarked";
+
+        saveBookmarks(bookmarks);
+
+    }
+
+}
+
+
+// =====================================
+// SHARE INDIVIDUAL POINT
+// =====================================
+
+async function sharePoint(pointId) {
+
+    const point = document.getElementById(
+        "point-" + pointId
+    );
+
+    if (!point) return;
+
+    const pointNumber = pointId.split("-").pop();
+
+    const shareText =
+        "FundsIQ - " + course.toUpperCase() +
+        ", Chapter " + chapter +
+        "\n\nPoint " + pointNumber +
+        "\n\n" + point.innerText +
+        "\n\nLearn • Practice • Pass";
+
+
+    if (navigator.share) {
+
+        try {
+
+            await navigator.share({
+
+                title: "FundsIQ Study Notes",
+
+                text: shareText
+
+            });
+
+        } catch (error) {
+
+            console.log("Share cancelled.");
+
+        }
+
+    } else {
+
+        const { showModal } = await getModals();
+
+        try {
+
+            await navigator.clipboard.writeText(shareText);
+
+            await showModal({
+
+                type: "success",
+
+                title: "Copied Successfully",
+
+                message: "This study point has been copied. You can now share it with your friends.",
+
+                buttonText: "Continue"
+
+            });
+
+        } catch (error) {
+
+            console.error("Copy error:", error);
+
+            await showModal({
+
+                type: "error",
+
+                title: "Unable to Copy",
+
+                message: "Your browser could not copy this study point. Please try again.",
+
+                buttonText: "Continue"
+
+            });
+
+        }
+
+    }
+
+}
+
+
+// =====================================
+// REPORT A STUDY POINT
+// =====================================
+
+async function reportPoint(pointId) {
+
+    const { showInputModal, showModal } =
+        await getModals();
+
+    const point = document.getElementById(
+        "point-" + pointId
+    );
+
+    if (!point) return;
+
+    const pointNumber = pointId.split("-").pop();
+
+
+    const reason = await showInputModal({
+
+        type: "warning",
+
+        title: "Report Study Note",
+
+        message: "Help us improve FundsIQ by telling us what is wrong with this note.",
+
+        details: "Examples: Incorrect information, spelling error or missing explanation.",
+
+        placeholder: "Describe the issue...",
+
+        maxLength: 500,
+
+        submitText: "Submit Report",
+
+        cancelText: "Cancel"
+
+    });
+
+
+    if (reason === null) return;
+
+
+    if (!reason.trim()) {
+
+        await showModal({
+
+            type: "warning",
+
+            title: "Reason Required",
+
+            message: "Please explain why you are reporting this study note.",
+
+            buttonText: "Continue"
+
+        });
+
+        return;
+
+    }
+
+
+    const subject =
+        "FundsIQ Note Report - " +
+        course.toUpperCase() +
+        " Chapter " + chapter +
+        " Point " + pointNumber;
+
+    const body =
+        "Course: " + course.toUpperCase() +
+        "\nChapter: " + chapter +
+        "\nPoint: " + pointNumber +
+        "\n\nReported Note:\n" + point.innerText +
+        "\n\nReason for Report:\n" + reason;
+
+
+    const email =
+        "mailto:fundsiq@gmail.com" +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+
+    window.location.href = email;
+
+}
+
+
+// =====================================
+// LOAD STUDY NOTES
+// =====================================
+
+if (
+    typeof CONTENT !== "undefined" &&
+    CONTENT[course] &&
+    CONTENT[course][chapterKey]
+) {
+
+    const notes = CONTENT[course][chapterKey];
+
+    let html = "";
+
+    notes.forEach((point, index) => {
+
+        const pointId =
+            course + "-" + chapter + "-" + (index + 1);
+
+        const bookmarked = isBookmarked(pointId);
+
+        html += `
+
+<div class="course-card">
+
+    <div class="point-title">
+        Point ${index + 1}
+    </div>
+
+    <div class="point-body" id="point-${pointId}">
+        ${point}
+    </div>
+
+    <div class="card-buttons">
+
+        <button
+            class="small-btn"
+            onclick="toggleBookmark('${pointId}', this)">
+
+            ${bookmarked ? "✅ Bookmarked" : "🔖 Bookmark"}
+
+        </button>
+
+        <button
+            class="small-btn"
+            onclick="sharePoint('${pointId}')">
+
+            📤 Share
+
+        </button>
+
+        <button
+            class="small-btn"
+            onclick="reportPoint('${pointId}')">
+
+            🚩 Report
+
+        </button>
+
+    </div>
+
+</div>
+
+`;
+
+    });
+
+    document.getElementById("contentArea").innerHTML = html;
+
+    document.getElementById("chapterTitle").innerHTML =
+        course.toUpperCase() +
+        "<br><span>Chapter " + chapter + "</span>";
+
+} else {
+
+    document.getElementById("chapterTitle").innerHTML =
+        "Content Not Found";
+
+    document.getElementById("contentArea").innerHTML = `
+
+<div class="course-card">
+
+    <h2>Content Not Found</h2>
+
+    <p><b>Course:</b> ${course}</p>
+
+    <p><b>Chapter:</b> ${chapter}</p>
+
+    <p><b>Key:</b> ${chapterKey}</p>
+
+    <p>
+        This chapter could not be found inside
+        <b>content.js</b>.
+    </p>
+
+</div>
+
+`;
+
+}
+
+
+// =====================================
+// START CHAPTER TEST
+// =====================================
+
+function startTest() {
+
+    window.location.href =
+        `exam.html?course=${encodeURIComponent(course)}` +
+        `&chapter=${encodeURIComponent(chapter)}`;
+
+}
+
+</script>
+
+</body>
+</html>

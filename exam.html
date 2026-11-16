@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FundsIQ - Exam</title>
+
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#0d6efd">
+
+  <!-- Mobile Debugger Pop-up: Shows any silent crash immediately on screen -->
+  <script>
+    window.onerror = function (message, source, lineno, colno, error) {
+      alert("Mobile Debugger Alert:\n\nError: " + message + "\nFile: " + source + "\nLine: " + lineno);
+      return false;
+    };
+  </script>
+</head>
+
+<body>
+
+<!-- ===========================
+EXAM SETUP (MODERN CARD UI)
+=========================== -->
+<div id="setup-screen" class="setup-container">
+
+    <!-- Header Section -->
+    <header class="setup-header">
+        <button class="back-btn" onclick="history.back()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="header-text">
+            <h1>Set Up Your Exam</h1>
+            <p id="setup-course-title">Loading Course Info...</p>
+        </div>
+    </header>
+
+    <!-- Card 1: Number of Questions -->
+    <div class="setup-card">
+        <div class="card-title">
+            <span class="icon">📋</span>
+            <div class="card-label-text">
+                <h2>Number of Questions</h2>
+                <p>Choose the number of questions you want to answer.</p>
+            </div>
+        </div>
+        
+        <div class="question-grid" id="question-grid">
+            <button class="grid-btn" data-value="5">5</button>
+            <button class="grid-btn" data-value="10">10</button>
+            <button class="grid-btn" data-value="15">15</button>
+            <button class="grid-btn" data-value="20">20</button>
+            <button class="grid-btn" data-value="25">25</button>
+            <button class="grid-btn active" data-value="50">50 <span class="check-mark">✓</span></button>
+            <button class="grid-btn" data-value="75">75</button>
+            <button class="grid-btn" data-value="100">100</button>
+            <button class="grid-btn" data-value="150">150</button>
+            <button class="grid-btn" data-value="200">200</button>
+            <button class="grid-btn" data-value="250">250</button>
+            <button class="grid-btn" data-value="CUSTOM">Custom</button>
+        </div>
+    </div>
+
+    <!-- Card 2: Select Mode -->
+    <div class="setup-card">
+        <div class="card-title">
+            <span class="icon">🖥️</span>
+            <div class="card-label-text">
+                <h2>Select Mode</h2>
+                <p>Choose how you want to take this test.</p>
+            </div>
+        </div>
+        
+        <div class="mode-selector">
+            <div class="mode-card active" onclick="setMode('Exam')" id="mode-exam">
+                <div class="radio-indicator"></div>
+                <div class="mode-info">
+                    <h3>Exam Mode</h3>
+                    <p>Timed • Exam Conditions</p>
+                </div>
+            </div>
+            <div class="mode-card" onclick="setMode('Quiz')" id="mode-quiz">
+                <div class="radio-indicator"></div>
+                <div class="mode-info">
+                    <h3>Quiz Mode</h3>
+                    <p>Practice • No Pressure</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Set Time -->
+    <div class="setup-card">
+        <div class="card-title">
+            <span class="icon">⏱️</span>
+            <div class="card-label-text">
+                <h2>Set Time</h2>
+                <p>Choose the duration for your exam.</p>
+            </div>
+        </div>
+        
+        <div class="time-selector">
+            <div class="time-select-wrapper">
+                <label>Hours</label>
+                <select id="time-hours" class="time-select-dropdown">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+            <div class="time-select-wrapper">
+                <label>Minutes</label>
+                <select id="time-minutes" class="time-select-dropdown">
+    <option value="5">5</option>
+    <option value="10">10</option>
+    <option value="15">15</option>
+    <option value="20">20</option>
+    <option value="25">25</option>
+    <option value="30">30</option>
+    <option value="35">35</option>
+    <option value="40" selected>40</option>
+    <option value="45">45</option>
+    <option value="50">50</option>
+    <option value="55">55</option>
+            </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Action Button -->
+    <button class="start-btn-green" onclick="startExam()">
+        <span>▶</span> Start Exam
+    </button>
+
+    <p class="setup-disclaimer">
+        ⓘ You can review and change answers before submitting.
+    </p>
+
+</div>
+
+<!-- ===========================
+EXAM SCREEN
+=========================== -->
+<div id="exam-screen" style="display:none;">
+
+    <section class="status-bar">
+        <div class="status-item">
+            <span id="progress">Question 0 / 0</span>
+        </div>
+        <div class="status-item">
+            <span id="timer">⏰ 00:00</span>
+        </div>
+        <div class="status-item">
+            <span id="mode">Mode</span>
+        </div>
+    </section>
+
+    <div class="progress-container">
+        <div id="progress-fill"></div>
+    </div>
+
+    <main class="container">
+
+    <h3 id="question-number" style="margin-bottom:10px;"></h3>
+
+    <div id="question-box" class="question-box"></div>
+
+    <div id="options" class="options"></div>
+
+    <div class="nav-buttons">
+        <button onclick="prevQuestion()" class="option-btn" style="text-align:center;background:#374151;">
+            ⬅ Previous
+        </button>
+
+        <button onclick="markForReview()" class="option-btn" style="text-align:center;background:#f59e0b;">
+            ⭐ Review
+        </button>
+
+        <button id="next-btn" class="option-btn" style="text-align:center;background:#374151;">
+    Next ➡
+        </button>
+    </div>
+
+    <!-- Move the palette here -->
+    <div id="question-palette" class="question-palette"></div>
+
+    <p id="review-status"
+       style="text-align:center;margin-top:15px;font-weight:bold;color:#fbbf24;">
+    </p>
+
+    </main>
+
+</div>
+
+<!-- Statically load the master questions database and engine -->
+<!-- Questions -->
+<script src="questions.js"></script>
+
+<!-- Coin system -->
+<script type="module" src="coins.js"></script>
+
+<!-- Exam engine -->
+<script type="module" src="engine.js"></script>
+
+</body>
+</html>

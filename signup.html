@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FundsIQ - Create Account</title>
+
+    <link rel="stylesheet" href="login.css">
+</head>
+
+<body>
+
+<div class="auth-container">
+
+    <!-- Logo -->
+    <div class="logo">
+        🎓
+    </div>
+
+    <!-- Title -->
+    <h1>FundsIQ</h1>
+
+    <p class="subtitle">
+        Create your student account and start mastering your GST courses.
+    </p>
+
+    <!-- Signup Form -->
+    <form id="signupForm">
+
+    <div class="input-group">
+        <input
+            id="name"
+            type="text"
+            placeholder="Full Name"
+            autocomplete="name"
+            required>
+    </div>
+
+    <div class="input-group">
+        <input
+            id="email"
+            type="email"
+            placeholder="Email Address"
+            autocomplete="email"
+            required>
+    </div>
+
+    <div class="input-group">
+        <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            autocomplete="new-password"
+            required>
+    </div>
+
+    <!-- Referral Code -->
+    <div class="input-group">
+        <input
+            id="referralCode"
+            type="text"
+            placeholder="Referral Code (Optional)"
+            autocomplete="off">
+    </div>
+
+    <button
+        type="button"
+        id="signupBtn"
+        class="login-btn">
+        Create Account
+    </button>
+
+    </form>
+
+    <p class="signup">
+        Already have an account?
+        <a href="login.html">Login</a>
+    </p>
+
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script type="module" src="auth.js"></script>
+
+</body>
+
+</html>

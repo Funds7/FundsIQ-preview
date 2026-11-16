@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Google AdSense -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7574502390558110"
+    crossorigin="anonymous">
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- FundsIQ PWA Configuration -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>FundsIQ - Master Your GST Courses</title>
+
+  <meta
+    name="description"
+    content="FundsIQ helps university students study GST courses, practise CBT questions, track academic performance and prepare for examinations."
+  >
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card2: #172033;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --purple: #8b5cf6;
+      --purple-dark: #6d28d9;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: auto;
+    }
+
+    /* NAVBAR */
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      background: rgba(15,23,42,0.95);
+      backdrop-filter: blur(12px);
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      min-height: 70px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: var(--purple);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border: none;
+      border-radius: 10px;
+
+      padding: 10px 16px;
+
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--purple);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--purple-dark);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: white;
+    }
+
+    /* HERO */
+
+    .hero {
+      padding: 80px 0 65px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+
+      background: rgba(139,92,246,0.15);
+      color: #c4b5fd;
+
+      border: 1px solid rgba(139,92,246,0.25);
+
+      border-radius: 30px;
+
+      padding: 6px 12px;
+
+      font-size: 0.75rem;
+      font-weight: 700;
+
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      line-height: 1.05;
+
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      color: var(--purple);
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 650px;
+
+      margin-bottom: 28px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hero-card {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(139,92,246,0.18),
+          rgba(30,41,59,0.95)
+        );
+
+      border: 1px solid var(--border);
+      border-radius: 24px;
+
+      padding: 30px;
+
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+
+    .hero-card h3 {
+      margin-bottom: 18px;
+    }
+
+    .feature-preview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      padding: 14px;
+
+      background: rgba(255,255,255,0.05);
+
+      border-radius: 14px;
+
+      margin-bottom: 10px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 10px;
+
+      background: rgba(139,92,246,0.2);
+    }
+
+    .feature-preview strong {
+      display: block;
+      font-size: 0.9rem;
+    }
+
+    .feature-preview small {
+      color: #94a3b8;
+    }
+
+    /* GENERAL SECTIONS */
+
+    section.public-section {
+      padding: 70px 0;
+    }
+
+    .section-heading {
+      text-align: center;
+      max-width: 700px;
+
+      margin: 0 auto 40px;
+    }
+
+    .section-heading h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+    }
+
+    /* FEATURES */
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature-card {
+      background: var(--card);
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      padding: 24px;
+    }
+
+    .feature-card .icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* COURSES */
+
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .course {
+      background: var(--card);
+
+      border: 1px solid var(--border);
+      border-radius: 14px;
+
+      padding: 18px;
+
+      text-align: center;
+    }
+
+    .course strong {
+      display: block;
+      color: #c4b5fd;
+      margin-bottom: 5px;
+    }
+
+    .course span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* HOW IT WORKS */
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step-number {
+      width: 45px;
+      height: 45px;
+
+      margin: 0 auto 12px;
+
+      display: grid;
+      place-items: center;
+
+      background: var(--purple);
+      border-radius: 50%;
+
+      font-weight: 800;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* PREMIUM */
+
+    .premium-box {
+      background:
+        linear-gradient(
+          135deg,
+          #312e81,
+          #581c87
+        );
+
+      border-radius: 22px;
+
+      padding: 35px;
+
+      text-align: center;
+    }
+
+    .premium-box p {
+      color: #ddd6fe;
+      max-width: 650px;
+      margin: 10px auto 22px;
+    }
+
+    /* FAQ */
+
+    .faq {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    details {
+      background: var(--card);
+
+      border: 1px solid var(--border);
+      border-radius: 12px;
+
+      margin-bottom: 10px;
+      padding: 16px 18px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    details p {
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    /* CTA */
+
+    .cta {
+      text-align: center;
+
+      background: var(--card);
+
+      border: 1px solid var(--border);
+      border-radius: 22px;
+
+      padding: 45px 20px;
+    }
+
+    .cta p {
+      color: var(--muted);
+      margin: 10px auto 22px;
+      max-width: 600px;
+    }
+
+    /* FOOTER */
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 70px;
+      padding: 35px 0;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 30px;
+    }
+
+    .footer-brand p {
+      color: var(--muted);
+      max-width: 400px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    .footer-column h4 {
+      margin-bottom: 10px;
+    }
+
+    .footer-column a {
+      display: block;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 7px;
+    }
+
+    .footer-column a:hover {
+      color: white;
+    }
+
+    .copyright {
+      border-top: 1px solid var(--border);
+      margin-top: 30px;
+      padding-top: 20px;
+
+      color: #64748b;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 800px) {
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 55px 0 45px;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .courses-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .container {
+        width: min(100% - 22px, 1100px);
+      }
+
+      .nav-inner {
+        min-height: 62px;
+      }
+
+      .logo {
+        font-size: 1.3rem;
+      }
+
+      .nav-buttons .btn-secondary {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2.3rem;
+      }
+
+      .hero p {
+        font-size: 0.92rem;
+      }
+
+      .hero-card {
+        padding: 20px;
+      }
+
+      section.public-section {
+        padding: 50px 0;
+      }
+
+      .courses-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <header class="navbar">
+
+    <div class="container nav-inner">
+
+      <a href="index.html" class="logo">
+        FundsI<span>Q</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#courses">Courses</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#premium">Premium</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="nav-buttons">
+
+        <a href="login.html" class="btn btn-secondary">
+          Login
+        </a>
+
+        <a href="signup.html" class="btn btn-primary">
+          Get Started
+        </a>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- HERO -->
+
+  <main>
+
+    <section class="hero">
+
+      <div class="container hero-grid">
+
+        <div>
+
+          <span class="hero-badge">
+            STUDY SMARTER • PREPARE BETTER
+          </span>
+
+          <h1>
+            Master your
+            <span>GST courses.</span>
+          </h1>
+
+          <p>
+            FundsIQ is a student learning platform designed to help
+            university students study General Studies courses, practise
+            computer-based tests, monitor their academic performance and
+            prepare more effectively for examinations.
+          </p>
+
+          <div class="hero-buttons">
+
+            <a href="signup.html" class="btn btn-primary">
+              Start Learning
+            </a>
+
+            <a href="#how-it-works" class="btn btn-secondary">
+              Learn How It Works
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-card">
+
+          <h3>
+            Everything you need to practise
+          </h3>
+
+          <div class="feature-preview">
+            <div class="feature-icon">📚</div>
+            <div>
+              <strong>GST Courses</strong>
+              <small>Study your available courses</small>
+            </div>
+          </div>
+
+          <div class="feature-preview">
+            <div class="feature-icon">📝</div>
+            <div>
+              <strong>Simulated CBT</strong>
+              <small>Practise examination questions</small>
+            </div>
+          </div>
+
+          <div class="feature-preview">
+            <div class="feature-icon">📊</div>
+            <div>
+              <strong>Performance Tracking</strong>
+              <small>Monitor your learning progress</small>
+            </div>
+          </div>
+
+          <div class="feature-preview">
+            <div class="feature-icon">🎓</div>
+            <div>
+              <strong>Academic Tools</strong>
+              <small>Useful tools for university students</small>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ABOUT -->
+
+    <section class="public-section">
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <h2>
+            What is FundsIQ?
+          </h2>
+
+          <p>
+            FundsIQ is an online academic platform focused on helping
+            students organise their studies and practise GST courses
+            through accessible digital learning tools.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- FEATURES -->
+
+    <section
+      class="public-section"
+      id="features">
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <h2>
+            Study tools built for students
+          </h2>
+
+          <p>
+            FundsIQ combines learning resources, practice tests and
+            academic tools in one platform.
+          </p>
+
+        </div>
+
+
+        <div class="features-grid">
+
+          <article class="feature-card">
+
+            <div class="icon">📚</div>
+
+            <h3>
+              GST Learning
+            </h3>
+
+            <p>
+              Access available GST courses and study materials in an
+              organised digital environment.
+            </p>
+
+          </article>
+
+
+          <article class="feature-card">
+
+            <div class="icon">📝</div>
+
+            <h3>
+              CBT Practice
+            </h3>
+
+            <p>
+              Practise computer-based examination questions and become
+              familiar with the CBT format before your examination.
+            </p>
+
+          </article>
+
+
+          <article class="feature-card">
+
+            <div class="icon">📈</div>
+
+            <h3>
+              Performance
+            </h3>
+
+            <p>
+              Review your practice results and monitor your academic
+              progress over time.
+            </p>
+
+          </article>
+
+
+          <article class="feature-card">
+
+            <div class="icon">🧮</div>
+
+            <h3>
+              GPA Calculator
+            </h3>
+
+            <p>
+              Calculate academic performance using a simple GPA and CGPA
+              calculation tool.
+            </p>
+
+          </article>
+
+
+          <article class="feature-card">
+
+            <div class="icon">🏆</div>
+
+            <h3>
+              Leaderboard
+            </h3>
+
+            <p>
+              Compare practice performance with other students using
+              the available leaderboard features.
+            </p>
+
+          </article>
+
+
+          <article class="feature-card">
+
+            <div class="icon">📅</div>
+
+            <h3>
+              Timetable
+            </h3>
+
+            <p>
+              Organise your class schedule and keep important academic
+              activities in one place.
+            </p>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- COURSES -->
+<!-- GST COURSES -->
+
+<section
+  class="public-section"
+  id="courses">
+
+  <div class="container">
+
+    <div class="section-heading">
+
+      <h2>
+        GST Courses
+      </h2>
+
+      <p>
+        FundsIQ provides a structured environment for studying
+        General Studies courses across both semesters.
+      </p>
+
+    </div>
+
+
+    <!-- FIRST SEMESTER -->
+
+    <h3 style="
+      margin-bottom: 15px;
+      font-size: 1.15rem;
+      color: #c4b5fd;
+    ">
+      First Semester
+    </h3>
+
+    <div class="courses-grid">
+
+      <div class="course">
+        <strong>GST101</strong>
+        <span>General Studies</span>
+      </div>
+
+      <div class="course">
+        <strong>GST102</strong>
+        <span>General Studies</span>
+      </div>
+
+      <div class="course">
+        <strong>GST103</strong>
+        <span>General Studies</span>
+      </div>
+
+    </div>
+
+
+    <!-- SECOND SEMESTER -->
+
+    <h3 style="
+      margin: 35px 0 15px;
+      font-size: 1.15rem;
+      color: #c4b5fd;
+    ">
+      Second Semester
+    </h3>
+
+    <div class="courses-grid">
+
+      <div class="course">
+        <strong>GST111</strong>
+        <span>General Studies</span>
+      </div>
+
+      <div class="course">
+        <strong>GST112</strong>
+        <span>General Studies</span>
+      </div>
+
+      <div class="course">
+        <strong>GST113</strong>
+        <span>General Studies</span>
+      </div>
+
+      <div class="course">
+        <strong>GST114</strong>
+        <span>General Studies</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+    <!-- HOW IT WORKS -->
+
+    <section
+      class="public-section"
+      id="how-it-works">
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <h2>
+            How FundsIQ works
+          </h2>
+
+          <p>
+            Getting started takes only a few steps.
+          </p>
+
+        </div>
+
+
+        <div class="steps">
+
+          <div class="step">
+
+            <div class="step-number">
+              1
+            </div>
+
+            <h3>
+              Create an account
+            </h3>
+
+            <p>
+              Sign up for a FundsIQ student account.
+            </p>
+
+          </div>
+
+
+          <div class="step">
+
+            <div class="step-number">
+              2
+            </div>
+
+            <h3>
+              Choose a course
+            </h3>
+
+            <p>
+              Select the GST course you want to study.
+            </p>
+
+          </div>
+
+
+          <div class="step">
+
+            <div class="step-number">
+              3
+            </div>
+
+            <h3>
+              Practise
+            </h3>
+
+            <p>
+              Study your materials and practise CBT questions.
+            </p>
+
+          </div>
+
+
+          <div class="step">
+
+            <div class="step-number">
+              4
+            </div>
+
+            <h3>
+              Track progress
+            </h3>
+
+            <p>
+              Review your results and monitor your academic progress.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- PREMIUM -->
+
+    <section
+      class="public-section"
+      id="premium">
+
+      <div class="container">
+
+        <div class="premium-box">
+
+          <h2>
+            FundsIQ Premium
+          </h2>
+
+          <p>
+            Premium provides an enhanced FundsIQ experience with access
+            to premium features and an ad-free study experience.
+          </p>
+
+          <a
+            href="signup.html"
+            class="btn btn-primary">
+
+            Get Started
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- FAQ -->
+
+    <section
+      class="public-section"
+      id="faq">
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <h2>
+            Frequently Asked Questions
+          </h2>
+
+          <p>
+            Common questions about FundsIQ.
+          </p>
+
+        </div>
+
+
+        <div class="faq">
+
+          <details>
+
+            <summary>
+              What is FundsIQ?
+            </summary>
+
+            <p>
+              FundsIQ is an online learning platform that helps students
+              study GST courses, practise CBT questions and monitor
+              academic performance.
+            </p>
+
+          </details>
+
+
+          <details>
+
+            <summary>
+              Who can use FundsIQ?
+            </summary>
+
+            <p>
+              FundsIQ is designed primarily for university students who
+              want digital tools for studying and examination practice.
+            </p>
+
+          </details>
+
+
+          <details>
+
+            <summary>
+              What are CBT practice tests?
+            </summary>
+
+            <p>
+              CBT practice tests simulate computer-based examinations,
+              allowing students to practise answering questions in a
+              digital examination environment.
+            </p>
+
+          </details>
+
+
+          <details>
+
+            <summary>
+              Does FundsIQ have a GPA calculator?
+            </summary>
+
+            <p>
+              Yes. FundsIQ includes an academic calculator designed to
+              help students calculate GPA and CGPA.
+            </p>
+
+          </details>
+
+
+          <details>
+
+            <summary>
+              Does FundsIQ have Premium?
+            </summary>
+
+            <p>
+              Yes. FundsIQ offers a Premium option with additional
+              features and an ad-free experience.
+            </p>
+
+          </details>
+
+
+          <details>
+
+            <summary>
+              Is FundsIQ affiliated with my university?
+            </summary>
+
+            <p>
+              FundsIQ is an independent student learning platform unless
+              a specific institutional partnership is clearly stated.
+            </p>
+
+          </details>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CTA -->
+
+    <section class="public-section">
+
+      <div class="container">
+
+        <div class="cta">
+
+          <h2>
+            Start studying smarter
+          </h2>
+
+          <p>
+            Create your FundsIQ account and explore the available
+            learning and academic tools.
+          </p>
+
+          <a
+            href="signup.html"
+            class="btn btn-primary">
+
+            Create Free Account
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+
+  <footer>
+
+    <div class="container">
+
+      <div class="footer-grid">
+
+        <div class="footer-brand">
+
+          <strong class="logo">
+            FundsI<span>Q</span>
+          </strong>
+
+          <p>
+            A digital learning platform designed to help university
+            students study GST courses, practise CBT questions and
+            organise their academic progress.
+          </p>
+
+        </div>
+
+
+        <div class="footer-column">
+
+          <h4>
+            Platform
+          </h4>
+
+          <a href="#features">
+            Features
+          </a>
+
+          <a href="#courses">
+            Courses
+          </a>
+
+          <a href="#how-it-works">
+            How It Works
+          </a>
+
+          <a href="#premium">
+            Premium
+          </a>
+
+        </div>
+
+
+        <div class="footer-column">
+
+          <h4>
+            Account
+          </h4>
+
+          <a href="login.html">
+            Login
+          </a>
+
+          <a href="signup.html">
+            Sign Up
+          </a>
+
+          <a href="privacy.html">
+            Privacy Policy
+          </a>
+
+          <a href="terms.html">
+            Terms of Service
+          </a>
+
+          <a href="contact.html">
+            Contact
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div class="copyright">
+
+        © 2026 FundsIQ. All rights reserved.
+
+      </div>
+
+    </div>
+
+  </footer>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .then(() => console.log("FundsIQ service worker registered"))
+        .catch((error) => {
+          console.error("FundsIQ service worker registration failed:", error);
+        });
+    });
+  }
+</script>
+
+<script type="module">
+  import { auth } from "./firebase.js";
+  import "./exam-sync.js";
+
+  import {
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.location.replace("./dashboard.html");
+    }
+  });
+</script>
+
+</body>
+</html>

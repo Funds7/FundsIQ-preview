@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GST 103 Chapters - FundsIQ</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="chapter-header">
+        <h1>GST 103</h1>
+        <span>DELSU Culture and Ethics</span>
+        <p>📚 Choose a chapter to begin learning.</p>
+    </div>
+
+    <div id="chapterList">
+        <p>Loading chapters...</p>
+    </div>
+
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    try {
+
+        const chapters = [
+            {
+                id: 1,
+                title: "Delta State Environment"
+            },
+            {
+                id: 2,
+                title: "About Delta State University"
+            },
+            {
+                id: 3,
+                title: "University Service Departments and Their Functions"
+            },
+            {
+                id: 4,
+                title: "Safety and Security Measures on Campus"
+            },
+            {
+                id: 5,
+                title: "Student Unionism and Alumni Association"
+            },
+            {
+                id: 6,
+                title: "Library Management"
+            },
+            {
+                id: 7,
+                title: "Library Services"
+            },
+            {
+                id: 8,
+                title: "Promoting Academic Excellence"
+            }
+        ];
+
+        const chapterList = document.getElementById("chapterList");
+
+        let html = "";
+
+        chapters.forEach(function (chapter) {
+
+            html += `
+                <div class="course-card">
+
+                    <div class="point-title">
+                        Chapter ${chapter.id}
+                    </div>
+
+                    <div class="point-body">
+                        ${chapter.title}
+                    </div>
+
+                    <div class="card-buttons">
+
+                        <button
+                            class="small-btn"
+                            data-chapter="${chapter.id}">
+                            📖 Learn
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        });
+
+        html += `
+            <div class="course-card">
+
+                <div class="test-card">
+
+                    <h2>🏆 GST 103 Final Test</h2>
+
+                    <p>
+                        You've completed the learning phase.
+                        Test your knowledge and see your final score.
+                    </p>
+
+                    <button
+                        class="test-btn"
+                        id="startFinalTest">
+                        📝 Start Final CBT Exam
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        chapterList.innerHTML = html;
+
+        document.querySelectorAll("[data-chapter]").forEach(function (button) {
+
+            button.addEventListener("click", function () {
+
+                const chapterId = this.getAttribute("data-chapter");
+
+                localStorage.setItem("course", "gst103");
+                localStorage.setItem("chapter", chapterId);
+
+                window.location.href = "learn.html";
+
+            });
+
+        });
+
+        document.getElementById("startFinalTest")
+            .addEventListener("click", function () {
+
+                window.location.href = "exam.html?course=gst103";
+
+            });
+
+    } catch (error) {
+
+        document.getElementById("chapterList").innerHTML = `
+            <div class="course-card">
+                <h2>Unable to load GST 103</h2>
+                <p>Please try again.</p>
+            </div>
+        `;
+
+        console.error("GST 103 Error:", error);
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

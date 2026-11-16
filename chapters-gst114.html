@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GST 114 Chapters</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="chapter-header">
+        <h1>GST 114</h1>
+        <span>Communication in French</span>
+        <p>📚 Choose a chapter to begin learning.</p>
+    </div>
+
+    <div id="chapterList"></div>
+
+</div>
+
+<script src="gst114.js"></script>
+
+<script>
+
+let html = "";
+
+gst114Chapters.forEach(chapter => {
+
+html += `
+
+<div class="course-card">
+
+    <div class="point-title">
+        Chapter ${chapter.id}
+    </div>
+
+    <div class="point-body">
+        ${chapter.title}
+    </div>
+
+    <div class="card-buttons">
+
+        <button class="small-btn"
+        onclick="openChapter(${chapter.id})">
+        📖 Learn
+        </button>
+
+    </div>
+
+</div>
+
+`;
+
+});
+
+html += `
+
+<div class="test-card">
+
+    <h2>🏆 GST 114 Final Test</h2>
+
+    <p>
+        You've completed the learning phase.
+        Test your knowledge and see your final score.
+    </p>
+
+    <button class="test-btn"
+    onclick="location.href='exam.html?course=gst114'">
+        📝 Start Final CBT Exam
+    </button>
+
+</div>
+`;
+
+document.getElementById("chapterList").innerHTML = html;
+
+function openChapter(id){
+
+    localStorage.setItem("course","gst114");
+    localStorage.setItem("chapter",id);
+
+    window.location.href="learn.html";
+
+}
+
+</script>
+
+</body>
+</html>

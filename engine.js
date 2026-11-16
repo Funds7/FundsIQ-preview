@@ -1,0 +1,1371 @@
+import { auth, db } from "./firebase.js";
+
+import {
+    doc,
+    getDoc,
+    updateDoc,
+    collection,
+    setDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+import {
+    showModal,
+    showConfirmModal,
+    showInputModal
+} from "./modals.js";
+
+// ==========================================
+// COIN SYSTEM
+// ==========================================
+
+async function payForExam() {
+
+    if (typeof window.spendCoins !== "function") {
+
+        await showModal({
+            type: "error",
+            title: "Coin System Unavailable",
+            message: "The coin system is not ready.",
+            details: "Please refresh FundsIQ and try again."
+        });
+
+        return false;
+    }
+
+    try {
+
+        const paid = await window.spendCoins(
+            10,
+            `${selectedMode} Attempt`
+        );
+
+        return paid === true;
+
+    } catch (error) {
+
+        console.error("FundsIQ payment error:", error);
+
+        await showModal({
+            type: "error",
+            title: "Balance Verification Failed",
+            message: "We couldn't verify your coin balance.",
+            details: "Check your internet connection and try again."
+        });
+
+        return false;
+    }
+}
+
+// ==========================================
+// COURSE DICTIONARY
+// ==========================================
+
+const COURSE_TITLES = {
+    gst101: "GST 101 – Use of English & Library",
+    gst102: "GST 102 – Philosophy & Human Existence",
+    gst103: "GST 103 – DELSU Culture & Ethics",
+    gst111: "GST 111 – Nigerian Peoples, Culture & Entrepreneurial Skills",
+    gst112: "GST 112 – History & Philosophy of Science and Technology",
+    gst113: "GST 113 – Peace Studies & Conflict Resolution",
+    gst114: "GST 114 – Communication in French"
+};
+
+// ==========================================
+// STATE VARIABLES
+// ==========================================
+
+let questions = [];
+let currentQuestion = 0;
+let answers = [];
+let review = [];
+let timerInterval = null;
+let timeLeft = 0;
+
+let isSubmitting = false;
+let examStartTime = 0;
+let examSessionId = "";
+
+let selectedCourse = "";
+let selectedQuestionsCount = 50;
+let selectedMode = "Exam";
+
+// ==========================================
+// OFFLINE EXAM RECOVERY
+// ==========================================
+
+const ACTIVE_EXAM_PREFIX = "fundsiq_active_exam_v1:";
+
+function activeExamKey() {
+    const uid = auth.currentUser?.uid;
+    return uid ? ACTIVE_EXAM_PREFIX + uid : null;
+}
+
+function saveActiveExam() {
+    const key = activeExamKey();
+    if (!key || !questions.length || isSubmitting) return;
+
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            version: 1,
+            uid: auth.currentUser.uid,
+            course: selectedCourse,
+            mode: selectedMode,
+            questionCount: questions.length,
+            questions,
+            currentQuestion,
+            answers,
+            review,
+            timeLeft,
+            savedAt: Date.now(),
+            examStartTime,
+            examSessionId
+        }));
+    } catch (error) {
+        console.warn("Could not save exam progress locally:", error);
+    }
+}
+
+async function restoreActiveExam() {
+    const key = activeExamKey();
+    if (!key) return;
+
+    let saved;
+    try {
+        saved = JSON.parse(localStorage.getItem(key) || "null");
+    } catch (error) {
+        localStorage.removeItem(key);
+        return;
+    }
+
+    if (!saved || saved.version !== 1 || saved.uid !== auth.currentUser?.uid ||
+        !Array.isArray(saved.questions) || !saved.questions.length) return;
+
+    // Resume only when this same exam page was refreshed. If the student
+    // navigated away and later opened the exam page again, the old attempt
+    // is treated as ended, matching the previous FundsIQ behaviour.
+    const navigationEntry = performance.getEntriesByType?.("navigation")?.[0];
+    const isPageRefresh = navigationEntry
+        ? navigationEntry.type === "reload"
+        : performance.navigation?.type === 1;
+
+    if (!isPageRefresh) {
+        localStorage.removeItem(key);
+        return;
+    }
+
+    const confirmed = await showConfirmModal({
+        type: "info",
+        title: "Resume Your Previous Exam?",
+        message: "We found an unfinished exam saved on this device.",
+        details: "Your previous answers and question order will be restored.",
+        confirmText: "Resume Exam",
+        cancelText: "Start Fresh"
+    });
+
+    if (confirmed !== true) {
+        localStorage.removeItem(key);
+        return;
+    }
+
+    questions = saved.questions;
+    selectedCourse = saved.course;
+    selectedMode = saved.mode === "Quiz" ? "Quiz" : "Exam";
+    currentQuestion = Math.min(
+        Math.max(0, Number(saved.currentQuestion) || 0),
+        questions.length - 1
+    );
+    answers = Array.isArray(saved.answers) ? saved.answers : [];
+    review = Array.isArray(saved.review) ? saved.review : [];
+    timeLeft = Math.max(0, Number(saved.timeLeft) || 0);
+    examStartTime = Number(saved.examStartTime) || Date.now();
+    examSessionId = saved.examSessionId || ("exam_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10));
+
+    // Count time elapsed while the app was closed or in the background.
+    if (selectedMode === "Exam") {
+        const elapsed = Math.max(0, Math.floor((Date.now() - Number(saved.savedAt || Date.now())) / 1000));
+        timeLeft = Math.max(0, timeLeft - elapsed);
+    }
+
+    document.getElementById("setup-screen").style.display = "none";
+    document.getElementById("exam-screen").style.display = "block";
+    const modeEl = document.getElementById("mode");
+    if (modeEl) modeEl.innerText = selectedMode + " Mode";
+
+    loadQuestion();
+    if (selectedMode === "Exam") {
+        if (timeLeft <= 0) finishExam(true);
+        else startTimer();
+    } else {
+        const timerEl = document.getElementById("timer");
+        if (timerEl) timerEl.innerText = "♾️ Unlimited";
+    }
+}
+
+window.addEventListener("pagehide", saveActiveExam);
+
+// Some mobile browsers restore a page from the back-forward cache when the
+// student returns with the browser Back button. That is still leaving the
+// exam, not refreshing it, so end the attempt and show setup on that return.
+window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+
+    const key = activeExamKey();
+    if (key) localStorage.removeItem(key);
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+    questions = [];
+    currentQuestion = 0;
+    answers = [];
+    review = [];
+    timeLeft = 0;
+    examStartTime = 0;
+    examSessionId = "";
+    isSubmitting = false;
+
+    const examScreen = document.getElementById("exam-screen");
+    const setupScreen = document.getElementById("setup-screen");
+    if (examScreen) examScreen.style.display = "none";
+    if (setupScreen) setupScreen.style.display = "block";
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveActiveExam();
+});
+
+
+// ==========================================
+// COURSE RESOLUTION
+// ==========================================
+
+function getSelectedCourse() {
+
+    try {
+
+        const params = new URLSearchParams(window.location.search);
+
+        let course =
+            params.get("course") ||
+            localStorage.getItem("selectedCourse") ||
+            localStorage.getItem("course") ||
+            "gst101";
+
+        return course
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "")
+            .trim();
+
+    } catch (error) {
+
+        console.warn("Course resolution error:", error);
+
+        return "gst101";
+    }
+}
+
+// ==========================================
+// PAGE INITIALIZATION
+// ==========================================
+
+function initPage() {
+
+    if (window.pageInitialized) return;
+
+    window.pageInitialized = true;
+
+    selectedCourse = getSelectedCourse();
+
+    const courseTitle =
+        COURSE_TITLES[selectedCourse] ||
+        selectedCourse.toUpperCase();
+
+    const titleEl = document.getElementById("setup-course-title");
+
+    if (titleEl) {
+        titleEl.innerText = courseTitle;
+    }
+
+    const gridButtons = document.querySelectorAll(".grid-btn");
+
+    gridButtons.forEach(btn => {
+
+        btn.addEventListener("click", async () => {
+
+            gridButtons.forEach(b => {
+
+                b.classList.remove("active");
+
+                const check = b.querySelector(".check-mark");
+
+                if (check) check.remove();
+
+            });
+
+            btn.classList.add("active");
+
+            const rawVal = btn.getAttribute("data-value");
+
+            if (rawVal === "CUSTOM") {
+
+                const customVal = await showInputModal({
+                    type: "info",
+                    title: "Custom Question Count",
+                    message: "How many questions would you like to practice?",
+                    placeholder: "Enter number of questions",
+                    inputType: "number",
+                    defaultValue: String(selectedQuestionsCount),
+                    min: 1,
+                    submitText: "Set Questions"
+                });
+
+                if (
+                    customVal !== null &&
+                    customVal.trim() !== "" &&
+                    !isNaN(customVal) &&
+                    parseInt(customVal, 10) > 0
+                ) {
+
+                    selectedQuestionsCount = parseInt(customVal, 10);
+
+                    btn.innerHTML =
+                        `${selectedQuestionsCount} <span class="check-mark">✓</span>`;
+
+                } else {
+
+                    const defaultBtn =
+                        document.querySelector('[data-value="50"]');
+
+                    if (defaultBtn) {
+
+                        gridButtons.forEach(b => {
+
+                            b.classList.remove("active");
+
+                            const check = b.querySelector(".check-mark");
+
+                            if (check) check.remove();
+                        });
+
+                        defaultBtn.classList.add("active");
+
+                        defaultBtn.innerHTML =
+                            '50 <span class="check-mark">✓</span>';
+                    }
+
+                    selectedQuestionsCount = 50;
+                }
+
+            } else {
+
+                selectedQuestionsCount = parseInt(rawVal, 10);
+
+                btn.innerHTML =
+                    `${rawVal} <span class="check-mark">✓</span>`;
+            }
+
+        });
+
+    });
+
+    const examScreen = document.getElementById("exam-screen");
+    const setupScreen = document.getElementById("setup-screen");
+
+    if (examScreen) examScreen.style.display = "none";
+
+    if (setupScreen) setupScreen.style.display = "block";
+
+    // Restore only after Firebase has restored the signed-in account.
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            restoreActiveExam().catch(error => console.warn("Exam recovery failed:", error));
+        }
+    });
+}
+
+// DOM READY
+
+if (document.readyState === "loading") {
+
+    document.addEventListener("DOMContentLoaded", initPage);
+
+} else {
+
+    initPage();
+}
+
+// ==========================================
+// MODE SELECTION
+// ==========================================
+
+function setMode(mode) {
+
+    selectedMode = mode;
+
+    document.querySelectorAll(".mode-card").forEach(card => {
+        card.classList.remove("active");
+    });
+
+    if (mode === "Exam") {
+
+        const examEl = document.getElementById("mode-exam");
+
+        if (examEl) examEl.classList.add("active");
+
+    } else if (mode === "Quiz") {
+
+        const quizEl = document.getElementById("mode-quiz");
+
+        if (quizEl) quizEl.classList.add("active");
+    }
+}
+
+// ==========================================
+// START EXAM
+// ==========================================
+
+async function startExam() {
+
+    if (window.examStarting) return;
+
+    window.examStarting = true;
+
+    const startButton = document.querySelector(".start-btn-green");
+
+    if (startButton) {
+        startButton.disabled = true;
+        startButton.dataset.originalText = startButton.innerText;
+        startButton.innerText = "Starting...";
+    }
+
+    try {
+
+        if (
+            typeof QUESTIONS === "undefined" ||
+            !Array.isArray(QUESTIONS)
+        ) {
+
+            throw new Error(
+                "Questions could not load. Please refresh the page."
+            );
+        }
+
+        selectedCourse = getSelectedCourse();
+
+        if (!COURSE_TITLES[selectedCourse]) {
+
+            throw new Error(
+                "Invalid course. Return to Courses and select it again."
+            );
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        const chapter = params.get("chapter");
+
+        const hrs = parseInt(
+            document.getElementById("time-hours")?.value,
+            10
+        ) || 0;
+
+        const mins = parseInt(
+            document.getElementById("time-minutes")?.value,
+            10
+        ) || 0;
+
+        const totalMinutes = (hrs * 60) + mins;
+
+        if (selectedMode === "Exam" && totalMinutes <= 0) {
+
+            throw new Error(
+                "Please select a valid exam duration."
+            );
+        }
+
+        let matchedQuestions = QUESTIONS.filter(q => {
+
+            if (!q || typeof q.course !== "string") {
+                return false;
+            }
+
+            const course = q.course
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
+
+            if (course !== selectedCourse) {
+                return false;
+            }
+
+            if (
+                chapter &&
+                Number(q.chapter) !== Number(chapter)
+            ) {
+                return false;
+            }
+
+            return (
+                typeof q.question === "string" &&
+                q.question.trim().length > 0 &&
+                Array.isArray(q.options) &&
+                q.options.length >= 2 &&
+                Number.isInteger(Number(q.answer)) &&
+                Number(q.answer) >= 0 &&
+                Number(q.answer) < q.options.length
+            );
+
+        });
+
+        if (matchedQuestions.length === 0) {
+
+            throw new Error(
+                "No valid questions were found for " +
+                selectedCourse.toUpperCase() +
+                (chapter ? " in this chapter." : ".")
+            );
+        }
+
+        matchedQuestions = matchedQuestions.map(q => ({
+            ...q,
+            answer: Number(q.answer)
+        }));
+
+        // Shuffle questions
+
+        for (
+            let i = matchedQuestions.length - 1;
+            i > 0;
+            i--
+        ) {
+
+            const j = Math.floor(Math.random() * (i + 1));
+
+            [
+                matchedQuestions[i],
+                matchedQuestions[j]
+            ] = [
+                matchedQuestions[j],
+                matchedQuestions[i]
+            ];
+        }
+
+        const count = Math.max(
+            1,
+            parseInt(selectedQuestionsCount, 10) || 50
+        );
+
+        questions = matchedQuestions.slice(0, count);
+
+        // Payment
+
+        const payment = await payForExam();
+
+        if (!payment) return;
+
+        // Reset exam state
+
+        currentQuestion = 0;
+
+        answers = [];
+
+        review = [];
+
+        timeLeft = (
+            selectedMode === "Exam"
+                ? totalMinutes
+                : 0
+        ) * 60;
+
+        examStartTime = Date.now();
+        examSessionId = "exam_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+
+        const modeEl = document.getElementById("mode");
+
+        if (modeEl) {
+            modeEl.innerText = selectedMode + " Mode";
+        }
+
+        const setupScreen = document.getElementById("setup-screen");
+
+        const examScreen = document.getElementById("exam-screen");
+
+        if (!setupScreen || !examScreen) {
+
+            throw new Error(
+                "Exam screen could not load. Please refresh."
+            );
+        }
+
+        setupScreen.style.display = "none";
+
+        examScreen.style.display = "block";
+
+        if (selectedMode === "Exam") {
+
+            startTimer();
+
+        } else {
+
+            const timerEl = document.getElementById("timer");
+
+            if (timerEl) {
+                timerEl.innerText = "♾️ Unlimited";
+            }
+        }
+
+        loadQuestion();
+
+    } catch (error) {
+
+        console.error(
+            "FundsIQ Start Exam Error:",
+            error
+        );
+
+        await showModal({
+            type: "error",
+            title: "Unable to Start Exam",
+            message: error.message ||
+                "Unable to start your examination.",
+            details: "Please check your selection and try again."
+        });
+
+    } finally {
+
+        window.examStarting = false;
+
+        if (startButton) {
+
+            startButton.disabled = false;
+
+            startButton.innerText =
+                startButton.dataset.originalText || "Start Exam";
+        }
+    }
+}
+
+// ==========================================
+// LOAD QUESTION
+// ==========================================
+
+function loadQuestion() {
+
+    if (questions.length === 0) {
+
+        const questionBox = document.getElementById("question-box");
+
+        if (questionBox) {
+            questionBox.innerHTML = "<h3>No questions found.</h3>";
+        }
+
+        return;
+    }
+
+    const q = questions[currentQuestion];
+
+    if (!q) return;
+
+    const numberEl = document.getElementById("question-number");
+
+    const questionBox = document.getElementById("question-box");
+
+    const progressEl = document.getElementById("progress");
+
+    if (numberEl) {
+        numberEl.innerText = `Question ${currentQuestion + 1}`;
+    }
+
+    if (questionBox) {
+        questionBox.innerText = q.question;
+    }
+
+    if (progressEl) {
+        progressEl.innerText =
+            `Question ${currentQuestion + 1} / ${questions.length}`;
+    }
+
+    let html = "";
+
+    const letters = ["A", "B", "C", "D", "E", "F"];
+
+    q.options.forEach((option, i) => {
+
+        let styleStr = "";
+
+        if (answers[currentQuestion] !== undefined) {
+
+            if (selectedMode === "Quiz") {
+
+                if (i === q.answer) {
+
+                    styleStr =
+                        "style='background:#22c55e;color:#fff;border-color:#22c55e;'";
+
+                } else if (answers[currentQuestion] === i) {
+
+                    styleStr =
+                        "style='background:#ef4444;color:#fff;border-color:#ef4444;'";
+                }
+
+            } else {
+
+                if (answers[currentQuestion] === i) {
+
+                    styleStr =
+                        "style='background:#2563eb;color:#fff;'";
+                }
+            }
+        }
+
+        const letter = letters[i] || String(i + 1);
+
+        html += `
+            <button class="btn option-btn"
+                ${styleStr}
+                onclick="answer(${i})">
+                <strong>${letter}.</strong> ${option}
+            </button><br><br>
+        `;
+
+    });
+
+    const optionsEl = document.getElementById("options");
+
+    if (optionsEl) {
+        optionsEl.innerHTML = html;
+    }
+
+    const reviewStatus = document.getElementById("review-status");
+
+    if (reviewStatus) {
+
+        reviewStatus.innerText = review.includes(currentQuestion)
+            ? "⭐ Flagged for Review"
+            : "";
+    }
+
+    updateProgressBar();
+
+    createPalette();
+
+    updateNextButton();
+    saveActiveExam();
+}
+
+// ==========================================
+// ANSWER QUESTION
+// ==========================================
+
+function answer(choice) {
+
+    if (
+        selectedMode === "Quiz" &&
+        answers[currentQuestion] !== undefined
+    ) {
+        return;
+    }
+
+    answers[currentQuestion] = choice;
+
+    loadQuestion();
+}
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+
+function nextQuestion() {
+
+    if (currentQuestion < questions.length - 1) {
+
+        currentQuestion++;
+
+        loadQuestion();
+    }
+}
+
+function prevQuestion() {
+
+    if (currentQuestion > 0) {
+
+        currentQuestion--;
+
+        loadQuestion();
+    }
+}
+
+// ==========================================
+// REVIEW TOGGLE
+// ==========================================
+
+function markForReview() {
+
+    const index = review.indexOf(currentQuestion);
+
+    if (index > -1) {
+
+        review.splice(index, 1);
+
+    } else {
+
+        review.push(currentQuestion);
+    }
+
+    loadQuestion();
+}
+
+// ==========================================
+// PROGRESS BAR
+// ==========================================
+
+function updateProgressBar() {
+
+    const fill = document.getElementById("progress-fill");
+
+    if (!fill || questions.length === 0) return;
+
+    const percent =
+        ((currentQuestion + 1) / questions.length) * 100;
+
+    fill.style.width = percent + "%";
+}
+
+// ==========================================
+// NEXT BUTTON
+// ==========================================
+
+function updateNextButton() {
+
+    const nextBtn = document.getElementById("next-btn");
+
+    if (!nextBtn) return;
+
+    nextBtn.onclick = null;
+
+    if (currentQuestion === questions.length - 1) {
+
+        nextBtn.innerHTML = "📝 Submit Exam";
+
+        nextBtn.onclick = finishExam;
+
+        nextBtn.style.background = "#16a34a";
+
+    } else {
+
+        nextBtn.innerHTML = "Next ➡";
+
+        nextBtn.onclick = nextQuestion;
+
+        nextBtn.style.background = "#374151";
+    }
+}
+
+// ==========================================
+// QUESTION PALETTE
+// ==========================================
+
+function createPalette() {
+
+    const palette = document.getElementById("question-palette");
+
+    if (!palette) return;
+
+    palette.innerHTML = "";
+
+    questions.forEach((q, i) => {
+
+        const btn = document.createElement("button");
+
+        btn.innerText = i + 1;
+
+        btn.className = "palette-btn";
+
+        if (answers[i] !== undefined) {
+
+            btn.style.background = "#22c55e";
+
+            btn.style.color = "#fff";
+        }
+
+        if (review.includes(i)) {
+
+            btn.style.background = "#f59e0b";
+
+            btn.style.color = "#fff";
+        }
+
+        if (i === currentQuestion) {
+
+            btn.style.border = "3px solid #3b82f6";
+        }
+
+        btn.onclick = function () {
+
+            currentQuestion = i;
+
+            loadQuestion();
+        };
+
+        palette.appendChild(btn);
+    });
+}
+
+// ==========================================
+// TIMER
+// ==========================================
+
+function startTimer() {
+
+    clearInterval(timerInterval);
+
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+
+        if (timeLeft <= 0) {
+
+            clearInterval(timerInterval);
+
+            finishExam(true);
+
+            return;
+        }
+
+        timeLeft--;
+
+        updateTimerDisplay();
+        if (timeLeft % 5 === 0) saveActiveExam();
+
+    }, 1000);
+}
+
+// ==========================================
+// TIMER DISPLAY
+// ==========================================
+
+function updateTimerDisplay() {
+
+    const hrs = Math.floor(timeLeft / 3600);
+
+    const mins = Math.floor((timeLeft % 3600) / 60);
+
+    const secs = timeLeft % 60;
+
+    const timerEl = document.getElementById("timer");
+
+    if (!timerEl) return;
+
+    if (hrs > 0) {
+
+        timerEl.innerText =
+            `⏰ ${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    } else {
+
+        timerEl.innerText =
+            `⏰ ${mins}:${String(secs).padStart(2, "0")}`;
+    }
+}
+
+// ==========================================
+// FINISH EXAM
+// ==========================================
+
+async function finishExam(autoSubmit = false) {
+
+    if (isSubmitting) return;
+
+    if (!questions.length) return;
+
+    if (!autoSubmit) {
+
+        const confirmed = await showConfirmModal({
+            type: "warning",
+            title: "Submit Examination?",
+            message: "Are you sure you want to submit your exam?",
+            details: "You won't be able to change your answers after submission.",
+            confirmText: "Yes, Submit",
+            cancelText: "Keep Practicing"
+        });
+
+        if (confirmed !== true) {
+            return;
+        }
+    }
+
+    isSubmitting = true;
+
+    clearInterval(timerInterval);
+
+    const submitBtn =
+        document.getElementById("next-btn") ||
+        document.querySelector(".submit-btn");
+
+    if (submitBtn) {
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerHTML = "⏳ Submitting...";
+
+        submitBtn.style.opacity = "0.7";
+
+        submitBtn.style.cursor = "not-allowed";
+    }
+
+    // Calculate scores
+
+    const totalQuestions = questions.length;
+
+    let correctAnswers = 0;
+
+    questions.forEach((q, i) => {
+
+        if (answers[i] === q.answer) {
+            correctAnswers++;
+        }
+    });
+
+    const wrongAnswers =
+        Math.max(0, totalQuestions - correctAnswers);
+
+    const percentage = Number(
+        ((correctAnswers / totalQuestions) * 100).toFixed(1)
+    );
+
+    // Unanswered questions
+
+    let unansweredCount = 0;
+
+    for (let i = 0; i < totalQuestions; i++) {
+
+        if (
+            answers[i] === undefined ||
+            answers[i] === null
+        ) {
+            unansweredCount++;
+        }
+    }
+
+    // Duration
+
+    let examDuration = 0;
+
+    if (examStartTime > 0) {
+
+        examDuration = Math.max(
+            1,
+            Math.round((Date.now() - examStartTime) / 1000)
+        );
+
+    } else {
+
+        const hrsEl = document.getElementById("time-hours");
+
+        const minsEl = document.getElementById("time-minutes");
+
+        const hrs = hrsEl ? (parseInt(hrsEl.value) || 0) : 0;
+
+        const mins = minsEl ? (parseInt(minsEl.value) || 0) : 0;
+
+        const totalSecs = ((hrs * 60) + mins) * 60;
+
+        examDuration = Math.max(1, totalSecs - timeLeft);
+    }
+
+    // Format duration
+
+    const formatTimeSpent = (totalSecs) => {
+
+        const h = Math.floor(totalSecs / 3600);
+
+        const m = Math.floor((totalSecs % 3600) / 60);
+
+        const s = totalSecs % 60;
+
+        return (
+            `${h}:${String(m).padStart(2, "0")}:` +
+            `${String(s).padStart(2, "0")}`
+        );
+    };
+
+    const timeSpentFormatted =
+        formatTimeSpent(examDuration);
+
+    // Chapter statistics
+
+    const chaptersMap = {};
+
+    questions.forEach((q, i) => {
+
+        const chap = q.chapter || 1;
+
+        if (!chaptersMap[chap]) {
+
+            chaptersMap[chap] = {
+                correct: 0,
+                total: 0
+            };
+        }
+
+        chaptersMap[chap].total++;
+
+        if (answers[i] === q.answer) {
+            chaptersMap[chap].correct++;
+        }
+    });
+
+    const chapterResults = {};
+
+    const strongChapters = [];
+
+    const weakChapters = [];
+
+    Object.keys(chaptersMap).forEach(chap => {
+
+        const stats = chaptersMap[chap];
+
+        const pct = Math.round(
+            (stats.correct / stats.total) * 100
+        );
+
+        chapterResults[chap] = pct;
+
+        if (pct >= 70) {
+
+            strongChapters.push(Number(chap));
+
+        } else if (pct < 50) {
+
+            weakChapters.push(Number(chap));
+        }
+    });
+
+    // Save local results
+
+    try {
+
+        localStorage.setItem("score", correctAnswers);
+
+        localStorage.setItem("total", totalQuestions);
+
+        localStorage.setItem("course", selectedCourse);
+
+        localStorage.setItem(
+            "examQuestions",
+            JSON.stringify(questions)
+        );
+
+        localStorage.setItem(
+            "examAnswers",
+            JSON.stringify(answers)
+        );
+
+        localStorage.setItem("unanswered", unansweredCount);
+
+        localStorage.setItem(
+            "durationFormatted",
+            timeSpentFormatted
+        );
+
+    } catch (error) {
+
+        console.warn("LocalStorage save failed:", error);
+    }
+
+    // Queue the completed result locally first. A stable session ID makes
+    // retries safe and prevents duplicate result documents.
+    const user = auth.currentUser;
+    let examId = examSessionId || ("exam_" + Date.now());
+
+    const resultPayload = {
+        course: selectedCourse,
+        courseTitle: COURSE_TITLES[selectedCourse] || selectedCourse.toUpperCase(),
+        score: correctAnswers,
+        correct: correctAnswers,
+        wrong: wrongAnswers,
+        unanswered: unansweredCount,
+        totalQuestions,
+        percentage,
+        mode: selectedMode,
+        duration: examDuration,
+        durationFormatted: timeSpentFormatted,
+        chapterResults,
+        strongChapters,
+        weakChapters,
+        grade: percentage >= 70 ? "A" : percentage >= 60 ? "B" : percentage >= 50 ? "C" : percentage >= 45 ? "D" : "F",
+        completedAt: new Date().toISOString()
+    };
+
+    try {
+        const queueKey = user
+            ? "fundsiq_pending_exam_results_v1:" + user.uid
+            : "fundsiq_offline_exam_history_mock";
+
+        const pending = JSON.parse(localStorage.getItem(queueKey) || "[]");
+        const alreadyQueued = pending.some(item => item.sessionId === examId);
+        if (!alreadyQueued) {
+            pending.unshift({
+                sessionId: examId,
+                uid: user?.uid || null,
+                result: resultPayload
+            });
+            localStorage.setItem(queueKey, JSON.stringify(pending));
+        }
+    } catch (storageError) {
+        console.error("Could not queue exam result locally:", storageError);
+    }
+
+    // Try immediate synchronization. If the device is offline or Firestore
+    // rejects the write, the queued result remains on this device.
+    if (user && navigator.onLine) {
+        try {
+            await setDoc(doc(db, "users", user.uid, "results", examId), {
+                ...resultPayload,
+                date: serverTimestamp()
+            }, { merge: true });
+
+            await setDoc(doc(db, "users", user.uid, "examHistory", examId), {
+                ...resultPayload,
+                completedAt: serverTimestamp()
+            }, { merge: true });
+
+            // Keep the existing online profile statistics behavior.
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                const courseField = selectedCourse + "Score";
+                const totalScoreAccumulated = (data.totalScore || 0) + correctAnswers;
+                const newCompletedTests = (data.completedTests || 0) + 1;
+                const oldAverage = data.averageScore || 0;
+                const newAverage = Number((
+                    (oldAverage * (newCompletedTests - 1) + percentage) /
+                    newCompletedTests
+                ).toFixed(1));
+                await updateDoc(userRef, {
+                    completedTests: newCompletedTests,
+                    totalScore: totalScoreAccumulated,
+                    [courseField]: (data[courseField] || 0) + correctAnswers,
+                    averageScore: newAverage,
+                    bestScore: Math.max(data.bestScore || 0, percentage),
+                    level: Math.floor(totalScoreAccumulated / 100) + 1
+                });
+            }
+
+            const queueKey = "fundsiq_pending_exam_results_v1:" + user.uid;
+            const pending = JSON.parse(localStorage.getItem(queueKey) || "[]");
+            localStorage.setItem(queueKey, JSON.stringify(
+                pending.filter(item => item.sessionId !== examId)
+            ));
+        } catch (syncError) {
+            console.warn("Exam result queued for later synchronization:", syncError);
+            await showModal({
+                type: "info",
+                title: "Result Saved on This Device",
+                message: "Your exam is complete. FundsIQ will retry syncing your result when internet access is available and permissions allow it."
+            });
+        }
+    } else if (user) {
+        await showModal({
+            type: "info",
+            title: "Result Saved Offline",
+            message: "Your exam is complete. Your result is stored on this device and will sync when you reconnect."
+        });
+    } else {
+        await showModal({
+            type: "info",
+            title: "Result Saved on This Device",
+            message: "Your result is saved locally. Log in when online to sync it to your account."
+        });
+    }
+
+    // Save exam ID
+
+    try {
+
+        localStorage.setItem("lastExamId", examId);
+
+    } catch (error) {
+
+        console.warn(
+            "Failed to store lastExamId:",
+            error
+        );
+    }
+
+    // The exam is complete; remove its recovery snapshot.
+    const activeKey = activeExamKey();
+    if (activeKey) localStorage.removeItem(activeKey);
+
+    // Go to results
+
+    window.location.href = "result.html";
+}
+
+// ==========================================
+// RETRY PENDING EXAM RESULT SYNCHRONIZATION
+// ==========================================
+
+async function syncPendingExamResults(user) {
+    if (!user || !navigator.onLine) return;
+
+    const queueKey = "fundsiq_pending_exam_results_v1:" + user.uid;
+    let pending = [];
+
+    try {
+        pending = JSON.parse(localStorage.getItem(queueKey) || "[]");
+    } catch (error) {
+        console.warn("Pending exam queue is unreadable:", error);
+        return;
+    }
+
+    if (!Array.isArray(pending) || !pending.length) return;
+
+    const remaining = [];
+    for (const item of pending) {
+        if (!item || item.uid !== user.uid || !item.sessionId || !item.result) continue;
+        try {
+            await setDoc(doc(db, "users", user.uid, "results", item.sessionId), {
+                ...item.result,
+                date: serverTimestamp()
+            }, { merge: true });
+
+            await setDoc(doc(db, "users", user.uid, "examHistory", item.sessionId), {
+                ...item.result,
+                completedAt: serverTimestamp()
+            }, { merge: true });
+        } catch (error) {
+            console.warn("Could not sync a pending exam result yet:", error);
+            remaining.push(item);
+        }
+    }
+
+    localStorage.setItem(queueKey, JSON.stringify(remaining));
+}
+
+onAuthStateChanged(auth, user => {
+    if (user) syncPendingExamResults(user);
+});
+
+window.addEventListener("online", () => {
+    if (auth.currentUser) syncPendingExamResults(auth.currentUser);
+});
+
+// ==========================================
+// GLOBAL FUNCTIONS
+// ==========================================
+
+window.startExam = startExam;
+
+window.setMode = setMode;
+
+window.answer = answer;
+
+window.nextQuestion = nextQuestion;
+
+window.prevQuestion = prevQuestion;
+
+window.markForReview = markForReview;
+
+window.finishExam = finishExam;

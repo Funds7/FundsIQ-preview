@@ -1,0 +1,407 @@
+/* ==========================
+GENERAL
+========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+    padding-bottom:100px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+}
+
+/* ==========================
+TOP BAR
+========================== */
+
+.top-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+}
+
+.back-btn{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:12px;
+    background:#1e293b;
+    color:white;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.top-bar h2{
+    font-size:22px;
+}
+
+.top-bar span{
+    font-weight:bold;
+    color:#94a3b8;
+}
+
+/* ==========================
+PROGRESS
+========================== */
+
+.progress{
+    height:8px;
+    background:#1e293b;
+    border-radius:30px;
+    overflow:hidden;
+    margin-bottom:22px;
+}
+
+#progressFill{
+    width:0%;
+    height:100%;
+    background:#2563eb;
+    transition:.4s;
+}
+
+/* ==========================
+QUESTION
+========================== */
+
+.question-card{
+    background:#1e293b;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.question-card h3{
+    line-height:1.6;
+}
+
+/* ==========================
+OPTIONS
+========================== */
+
+.option{
+    padding:16px;
+    border-radius:15px;
+    margin-bottom:12px;
+    background:#1f2937;
+    line-height:1.5;
+}
+
+.option.correct{
+    background:#22c55e;
+    color:white;
+}
+
+.option.wrong{
+    background:#ef4444;
+    color:white;
+}
+
+/* ==========================
+SUMMARY
+========================== */
+
+.summary-card{
+    background:#1e293b;
+    border-radius:18px;
+    padding:18px;
+    margin:22px 0;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:12px 0;
+    font-size:17px;
+}
+
+.summary-row strong{
+    font-size:20px;
+}
+
+/* ==========================
+EXPLANATION
+========================== */
+
+.explanation-card{
+    background:#1e293b;
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:30px;
+}
+
+.explanation-header{
+    padding:18px;
+    display:flex;
+    justify-content:space-between;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#explanationBody{
+    display:none;
+    padding:0 18px 18px;
+    color:#d1d5db;
+    line-height:1.7;
+}
+
+/* ==========================
+BOTTOM NAVIGATION
+========================== */
+
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:#111827;
+    padding:15px;
+    display:flex;
+    gap:15px;
+}
+
+.bottom-nav button{
+    flex:1;
+    border:none;
+    border-radius:15px;
+    padding:16px;
+    background:#2563eb;
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* ==========================
+ANIMATION
+========================== */
+
+.container>*{
+    animation:fade .4s ease;
+}
+
+@keyframes fade{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}/* ==========================
+GENERAL
+========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+    padding-bottom:100px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+}
+
+/* ==========================
+TOP BAR
+========================== */
+
+.top-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+}
+
+.back-btn{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:12px;
+    background:#1e293b;
+    color:white;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.top-bar h2{
+    font-size:22px;
+}
+
+.top-bar span{
+    font-weight:bold;
+    color:#94a3b8;
+}
+
+/* ==========================
+PROGRESS
+========================== */
+
+.progress{
+    height:8px;
+    background:#1e293b;
+    border-radius:30px;
+    overflow:hidden;
+    margin-bottom:22px;
+}
+
+#progressFill{
+    width:0%;
+    height:100%;
+    background:#2563eb;
+    transition:.4s;
+}
+
+/* ==========================
+QUESTION
+========================== */
+
+.question-card{
+    background:#1e293b;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.question-card h3{
+    line-height:1.6;
+}
+
+/* ==========================
+OPTIONS
+========================== */
+
+.option{
+    padding:16px;
+    border-radius:15px;
+    margin-bottom:12px;
+    background:#1f2937;
+    line-height:1.5;
+}
+
+.option.correct{
+    background:#22c55e;
+    color:white;
+}
+
+.option.wrong{
+    background:#ef4444;
+    color:white;
+}
+
+/* ==========================
+SUMMARY
+========================== */
+
+.summary-card{
+    background:#1e293b;
+    border-radius:18px;
+    padding:18px;
+    margin:22px 0;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:12px 0;
+    font-size:17px;
+}
+
+.summary-row strong{
+    font-size:20px;
+}
+
+/* ==========================
+EXPLANATION
+========================== */
+
+.explanation-card{
+    background:#1e293b;
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:30px;
+}
+
+.explanation-header{
+    padding:18px;
+    display:flex;
+    justify-content:space-between;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#explanationBody{
+    display:none;
+    padding:0 18px 18px;
+    color:#d1d5db;
+    line-height:1.7;
+}
+
+/* ==========================
+BOTTOM NAVIGATION
+========================== */
+
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:#111827;
+    padding:15px;
+    display:flex;
+    gap:15px;
+}
+
+.bottom-nav button{
+    flex:1;
+    border:none;
+    border-radius:15px;
+    padding:16px;
+    background:#2563eb;
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* ==========================
+ANIMATION
+========================== */
+
+.container>*{
+    animation:fade .4s ease;
+}
+
+@keyframes fade{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
