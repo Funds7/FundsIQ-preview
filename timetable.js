@@ -24,6 +24,9 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+// Signal the HTML watchdog that this ES module loaded and parsed successfully.
+window.__fundsiqTimetableModuleStarted = true;
+
 // =========================================================================
 // 2. TIMETABLE RUNTIME SYSTEM STATE
 // =========================================================================
