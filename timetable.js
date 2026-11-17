@@ -192,7 +192,6 @@ async function deleteClassSession(id) {
     State.selectedDeleteId = null; renderSchedule(); evaluateSmartSchedule();
 }
 
-function loadOfflineMockData() { loadLocalTimetable(); renderSchedule(); evaluateSmartSchedule(); }
 async function syncPendingTimetableChanges() {
     const user = auth.currentUser;
     if (!user || !navigator.onLine) return;
