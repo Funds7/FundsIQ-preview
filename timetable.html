@@ -308,6 +308,28 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Load Firebase scripts statically using Modular import maps in JavaScript -->
-  <script type="module" src="timetable.js"></script>
+  <script>
+    // Diagnostic watchdog: runs even if the timetable ES module fails to download or parse.
+    window.__fundsiqTimetableModuleStarted = false;
+    window.addEventListener("error", function (event) {
+      console.error("FundsIQ timetable page error:", event.message || event.error);
+    });
+    window.addEventListener("unhandledrejection", function (event) {
+      console.error("FundsIQ timetable promise error:", event.reason);
+    });
+    setTimeout(function () {
+      if (!window.__fundsiqTimetableModuleStarted) {
+        const status = document.getElementById("status-text");
+        if (status) status.textContent = "Script load error";
+        const dot = document.querySelector(".status-dot");
+        if (dot) dot.className = "status-dot offline";
+        const skeleton = document.getElementById("skeleton-loader");
+        if (skeleton) skeleton.style.display = "none";
+        const target = document.getElementById("active-schedule-content");
+        if (target) target.innerHTML = '<div class="empty-state"><h3>Timetable could not start</h3><p>One of its JavaScript modules failed to load. Check connection and reload.</p></div>';
+      }
+    }, 10000);
+  </script>
+  <script type="module" src="./timetable.js"></script>
 </body>
   </html>
