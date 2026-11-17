@@ -23,7 +23,6 @@ const APP_FILES = [
   "./timetable.html",
   "./timetable.js",
   "./timetable.css",
-      "./coin-api.js",
 
   // Styles
   "./style.css",
