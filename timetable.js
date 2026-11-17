@@ -671,9 +671,23 @@ window.triggerDeleteModal = function(id) {
 // =========================================================================
 // DOM EVENT BINDINGS
 // =========================================================================
-document.addEventListener("DOMContentLoaded", () => {
+const initializeTimetablePage = () => {
+    // Prevent the status badge from remaining on Connecting indefinitely.
+    const authStatusTimer = setTimeout(() => {
+        const txt = document.getElementById("status-text");
+        if (txt && txt.textContent === "Connecting...") {
+            txt.textContent = "Local Mode";
+            const dot = document.querySelector(".status-dot");
+            if (dot) dot.className = "status-dot offline";
+            toggleSkeleton(false);
+            loadOfflineMockData();
+            console.warn("FundsIQ timetable: Firebase auth did not respond within 8 seconds; local mode enabled.");
+        }
+    }, 8000);
+
     // 1. Monitor Authentication sessions
     onAuthStateChanged(auth, (user) => {
+        clearTimeout(authStatusTimer);
         const dot = document.querySelector(".status-dot");
         const txt = document.getElementById("status-text");
 
@@ -910,4 +924,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (navigator.onLine) syncPendingTimetableChanges();
     // Start background clock processes
     startClockTicks();
-});
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeTimetablePage, { once: true });
+} else {
+    initializeTimetablePage();
+}
